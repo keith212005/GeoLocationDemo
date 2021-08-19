@@ -3,7 +3,6 @@ import {
   Linking,
   SafeAreaView,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableHighlight,
   View,
@@ -12,20 +11,20 @@ import {
   Alert,
 } from 'react-native';
 
-import RNLocation from 'react-native-location';
-import moment from 'moment';
-import axios from 'axios';
-import ReactNativeForegroundService from '@supersami/rn-foreground-service';
-import * as geolib from 'geolib';
-import Toast from 'react-native-simple-toast';
-import NetInfo from '@react-native-community/netinfo';
 import {
   requestMultiple,
   openSettings,
   PERMISSIONS,
 } from 'react-native-permissions';
-
+import moment from 'moment';
+import axios from 'axios';
+import * as geolib from 'geolib';
 import RNFS from 'react-native-fs';
+import RNLocation from 'react-native-location';
+import Toast from 'react-native-simple-toast';
+import NetInfo from '@react-native-community/netinfo';
+import ReactNativeForegroundService from '@supersami/rn-foreground-service';
+
 var dirPath = `${RNFS.ExternalStorageDirectoryPath}/GeoLocationDemo`;
 var filePath = dirPath + '/test.txt';
 
@@ -36,7 +35,6 @@ import {callApi} from '@api';
 const repoUrl = 'https://github.com/timfpark/react-native-location';
 
 var locationSubscription: () => void;
-let locationTimeout = null;
 
 export default class Location extends React.PureComponent {
   constructor() {
@@ -44,6 +42,7 @@ export default class Location extends React.PureComponent {
     this.writeDataInFile(
       'Constructor: ' + moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
     );
+
     this.state = {
       location: null,
       user_id: 'Tk5XN0VyM050YzlKb29NVHZSbnA3Zz09',
@@ -96,29 +95,19 @@ export default class Location extends React.PureComponent {
     this.getAllPermissions()
       .then(() => {
         const unsubscribeNetInfo = NetInfo.addEventListener(state => {
-          console.log('Internet:', state.isConnected);
           RNFS.mkdir(dirPath);
           this.writeDataInFile('Internet connected: ' + state.isConnected);
         });
       })
       .catch(e => {
-        console.log('error in getAllPermissions>>>', e);
-
         Alert.alert(
           'Go To Settings',
           'Please grant Location and Storage Permissions to GeoLocationDemo to track your location in Settings -> Permissions.',
           [
-            {
-              text: 'Cancel',
-              onPress: () => console.log('Cancel Pressed'),
-              style: 'cancel',
-            },
+            {text: 'Cancel', onPress: () => {}, style: 'cancel'},
             {
               text: 'Go To Settings',
-              onPress: () =>
-                openSettings().catch(() =>
-                  console.warn('cannot open settings'),
-                ),
+              onPress: () => openSettings().catch(() => {}),
             },
           ],
         );
@@ -151,7 +140,7 @@ export default class Location extends React.PureComponent {
             statuses[permissions[1]],
           ];
           const values = ['granted', 'limited'];
-          console.log('statuses >>> ', statuses);
+
           if (
             this.oneOfThem(values, permissionStatus[0]) &&
             this.oneOfThem(values, permissionStatus[1])
@@ -161,9 +150,7 @@ export default class Location extends React.PureComponent {
             reject();
           }
         })
-        .catch(e => {
-          console.log(e);
-        });
+        .catch(e => {});
     });
   }
 
@@ -205,9 +192,6 @@ export default class Location extends React.PureComponent {
           var response = data[0];
           const {status_code, message} = response;
           Toast.show(JSON.stringify(response), Toast.LONG);
-          console.log(JSON.stringify(response));
-
-          // write the file
           this.writeDataInFile('response: ' + JSON.stringify(response));
           resolve();
         })
@@ -222,19 +206,16 @@ export default class Location extends React.PureComponent {
     // Creating a task.
     ReactNativeForegroundService.add_task(
       () => {
-        console.log('task executed');
         this.writeDataInFile('Start Tracking Listener.', this.state.isTracking);
         if (this.state.isTracking) {
           locationSubscription = RNLocation.subscribeToLocationUpdates(
             ([locations]) => {
-              console.log(this.state.isTracking);
               const {latitude, longitude} = locations;
               var params = 'Latitude: ' + latitude + ' Longitude: ' + longitude;
               this.writeDataInFile(params);
               this.callTestLatLongApi(latitude, longitude);
             },
           );
-          console.log('locationSubscription>>>>>', locationSubscription);
         }
       },
       {
@@ -267,32 +248,22 @@ export default class Location extends React.PureComponent {
     this.getAllPermissions()
       .then(() => {
         const unsubscribeNetInfo = NetInfo.addEventListener(state => {
-          console.log('Internet:', state.isConnected);
           RNFS.mkdir(dirPath);
           this.writeDataInFile('Internet connected: ' + state.isConnected);
-
           this.setState({isTracking: true}, () => {
             this._startTrackingListener();
           });
         });
       })
       .catch(e => {
-        console.log('error in getAllPermissions>>>', e);
         Alert.alert(
           'Go To Settings',
           'Please grant Location and Storage Permissions to GeoLocationDemo to track your location in Settings -> Permissions.',
           [
-            {
-              text: 'Cancel',
-              onPress: () => console.log('Cancel Pressed'),
-              style: 'cancel',
-            },
+            {text: 'Cancel', onPress: () => {}, style: 'cancel'},
             {
               text: 'Go To Settings',
-              onPress: () =>
-                openSettings().catch(() =>
-                  console.warn('cannot open settings'),
-                ),
+              onPress: () => openSettings().catch(() => {}),
             },
           ],
         );
@@ -304,9 +275,7 @@ export default class Location extends React.PureComponent {
   };
 
   _openRepoUrl = () => {
-    Linking.openURL(repoUrl).catch(err =>
-      console.error('An error occurred', err),
-    );
+    Linking.openURL(repoUrl).catch(err => {});
   };
 
   writeDataInFile(params) {
@@ -332,14 +301,7 @@ export default class Location extends React.PureComponent {
               placeholder="Enter Meeting Id"
               value={this.state.meeting_id}
               onChangeText={value => this.setState({meeting_id: value})}
-              style={{
-                height: 40,
-                margin: 12,
-                borderWidth: 1,
-                padding: 10,
-                width: 300,
-                color: 'black',
-              }}
+              style={styles.inputStyle}
             />
             <Text style={styles.title}>react-native-location</Text>
             <TouchableHighlight
@@ -363,84 +325,6 @@ export default class Location extends React.PureComponent {
               <Text style={styles.buttonText}>Stop</Text>
             </TouchableHighlight>
           </View>
-
-          {location && (
-            <React.Fragment>
-              <View style={styles.row}>
-                <View style={[styles.detailBox, styles.third]}>
-                  <Text style={styles.valueTitle}>Course</Text>
-                  <Text style={[styles.detail, styles.largeDetail]}>
-                    {location.course}
-                  </Text>
-                </View>
-
-                <View style={[styles.detailBox, styles.third]}>
-                  <Text style={styles.valueTitle}>Speed</Text>
-                  <Text style={[styles.detail, styles.largeDetail]}>
-                    {location.speed}
-                  </Text>
-                </View>
-
-                <View style={[styles.detailBox, styles.third]}>
-                  <Text style={styles.valueTitle}>Altitude</Text>
-                  <Text style={[styles.detail, styles.largeDetail]}>
-                    {location.altitude}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={{alignItems: 'flex-start'}}>
-                <View style={styles.row}>
-                  <View style={[styles.detailBox, styles.half]}>
-                    <Text style={styles.valueTitle}>Latitude</Text>
-                    <Text style={styles.detail}>{location.latitude}</Text>
-                  </View>
-
-                  <View style={[styles.detailBox, styles.half]}>
-                    <Text style={styles.valueTitle}>Longitude</Text>
-                    <Text style={styles.detail}>{location.longitude}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.row}>
-                  <View style={[styles.detailBox, styles.half]}>
-                    <Text style={styles.valueTitle}>Accuracy</Text>
-                    <Text style={styles.detail}>{location.accuracy}</Text>
-                  </View>
-
-                  <View style={[styles.detailBox, styles.half]}>
-                    <Text style={styles.valueTitle}>Altitude Accuracy</Text>
-                    <Text style={styles.detail}>
-                      {location.altitudeAccuracy}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.row}>
-                  <View style={[styles.detailBox, styles.half]}>
-                    <Text style={styles.valueTitle}>Timestamp</Text>
-                    <Text style={styles.detail}>{location.timestamp}</Text>
-                  </View>
-
-                  <View style={[styles.detailBox, styles.half]}>
-                    <Text style={styles.valueTitle}>Date / Time</Text>
-                    <Text style={styles.detail}>
-                      {moment(location.timestamp).format('MM-DD-YYYY h:mm:ss')}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.row}>
-                  <View style={[styles.detailBox, styles.full]}>
-                    <Text style={styles.json}>{JSON.stringify(location)}</Text>
-                    <Text style={styles.json}>
-                      {JSON.stringify(trackResponse)}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </React.Fragment>
-          )}
         </SafeAreaView>
       </ScrollView>
     );

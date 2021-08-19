@@ -27,10 +27,6 @@ export const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 5,
   },
-  detailBox: {
-    padding: 15,
-    justifyContent: 'center',
-  },
   button: {
     flex: 1,
     marginHorizontal: 10,
@@ -44,30 +40,18 @@ export const styles = StyleSheet.create({
     fontSize: 30,
     color: '#FFFFFF',
   },
-  valueTitle: {
-    fontFamily: 'Futura',
-    fontSize: 12,
-  },
-  detail: {
-    fontSize: 15,
-    fontWeight: 'bold',
-  },
-  largeDetail: {
-    fontSize: 20,
-  },
   json: {
     fontSize: 12,
     fontFamily: 'Courier',
     textAlign: 'center',
     fontWeight: 'bold',
   },
-  full: {
-    width: '100%',
-  },
-  half: {
-    width: '50%',
-  },
-  third: {
-    width: '33%',
+  inputStyle: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
+    width: 300,
+    color: 'black',
   },
 });
