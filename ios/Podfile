@@ -16,6 +16,8 @@ target 'GeoLocationDemo' do
 
 
 
+  pod 'RNFS', :path => '../node_modules/react-native-fs'
+
   target 'GeoLocationDemoTests' do
     inherit! :complete
     # Pods for testing

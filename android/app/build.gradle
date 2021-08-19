@@ -186,6 +186,8 @@ android {
 
 dependencies {
 
+    implementation project(':react-native-fs')
+
     implementation "com.google.android.gms:play-services-base:16.0.1"
     implementation "com.google.android.gms:play-services-location:16.0.0"
 

@@ -8,6 +8,8 @@ import {
   TouchableHighlight,
   View,
   TextInput,
+  DeviceEventEmitter,
+  Alert,
 } from 'react-native';
 
 import RNLocation from 'react-native-location';
@@ -15,6 +17,17 @@ import moment from 'moment';
 import axios from 'axios';
 import ReactNativeForegroundService from '@supersami/rn-foreground-service';
 import * as geolib from 'geolib';
+import Toast from 'react-native-simple-toast';
+import NetInfo from '@react-native-community/netinfo';
+import {
+  requestMultiple,
+  openSettings,
+  PERMISSIONS,
+} from 'react-native-permissions';
+
+import RNFS from 'react-native-fs';
+var dirPath = `${RNFS.ExternalStorageDirectoryPath}/GeoLocationDemo`;
+var filePath = dirPath + '/test.txt';
 
 import {styles} from './style';
 import {token, url, latLongArr} from '@constants';
@@ -22,16 +35,19 @@ import {callApi} from '@api';
 
 const repoUrl = 'https://github.com/timfpark/react-native-location';
 
-let locationSubscription = null;
+var locationSubscription: () => void;
 let locationTimeout = null;
 
 export default class Location extends React.PureComponent {
   constructor() {
     super();
+    this.writeDataInFile(
+      'Constructor: ' + moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+    );
     this.state = {
       location: null,
       user_id: 'Tk5XN0VyM050YzlKb29NVHZSbnA3Zz09',
-      meeting_id: 'S2R5V1c4S0xUaTNBbElmMFVCZ0t6Zz09',
+      meeting_id: '',
       is_start: 2,
       activity_type: 'others',
       sort_datetime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
@@ -41,10 +57,18 @@ export default class Location extends React.PureComponent {
       currentLatitude: '',
       trackResponse: null,
       distance: null,
+      isTracking: false,
     };
   }
 
   componentDidMount() {
+    let subscription = DeviceEventEmitter.addListener(
+      'notificationClickHandle',
+      function (e) {
+        console.log('json', e);
+      },
+    );
+
     this.calculateDistanceFromArray()
       .then(dist => console.log('distance: ', dist.toFixed(2) + ' Kms'))
       .catch(e => console.log(e));
@@ -57,9 +81,9 @@ export default class Location extends React.PureComponent {
       },
       // Android only
       androidProvider: 'auto',
-      interval: 10000, // Milliseconds
-      fastestInterval: 10000, // Milliseconds
-      maxWaitTime: 10000, // Milliseconds
+      interval: 5000, // Milliseconds
+      fastestInterval: 5000, // Milliseconds
+      maxWaitTime: 5000, // Milliseconds
       // iOS Only
       activityType: 'other',
       allowsBackgroundLocationUpdates: true,
@@ -69,9 +93,78 @@ export default class Location extends React.PureComponent {
       showsBackgroundLocationIndicator: false,
     });
 
-    this.requestLocationPermission()
-      .then(() => {})
-      .catch(() => {});
+    this.getAllPermissions()
+      .then(() => {
+        const unsubscribeNetInfo = NetInfo.addEventListener(state => {
+          console.log('Internet:', state.isConnected);
+          RNFS.mkdir(dirPath);
+          this.writeDataInFile('Internet connected: ' + state.isConnected);
+        });
+      })
+      .catch(e => {
+        console.log('error in getAllPermissions>>>', e);
+
+        Alert.alert(
+          'Go To Settings',
+          'Please grant Location and Storage Permissions to GeoLocationDemo to track your location in Settings -> Permissions.',
+          [
+            {
+              text: 'Cancel',
+              onPress: () => console.log('Cancel Pressed'),
+              style: 'cancel',
+            },
+            {
+              text: 'Go To Settings',
+              onPress: () =>
+                openSettings().catch(() =>
+                  console.warn('cannot open settings'),
+                ),
+            },
+          ],
+        );
+      });
+  }
+
+  oneOfThem(array, value) {
+    return array.includes(value);
+  }
+
+  getAllPermissions() {
+    return new Promise((resolve, reject) => {
+      var permissions = [];
+      if (Platform.OS == 'ios') {
+        permissions = [
+          PERMISSIONS.IOS.LOCATION_ALWAYS,
+          PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+        ];
+      } else {
+        permissions = [
+          PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+          PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
+        ];
+      }
+
+      requestMultiple(permissions)
+        .then(statuses => {
+          const permissionStatus = [
+            statuses[permissions[0]],
+            statuses[permissions[1]],
+          ];
+          const values = ['granted', 'limited'];
+          console.log('statuses >>> ', statuses);
+          if (
+            this.oneOfThem(values, permissionStatus[0]) &&
+            this.oneOfThem(values, permissionStatus[1])
+          ) {
+            resolve();
+          } else {
+            reject();
+          }
+        })
+        .catch(e => {
+          console.log(e);
+        });
+    });
   }
 
   calculateDistanceFromArray() {
@@ -88,31 +181,8 @@ export default class Location extends React.PureComponent {
     });
   }
 
-  requestLocationPermission() {
-    return new Promise((resolve, reject) => {
-      RNLocation.requestPermission({
-        ios: 'whenInUse',
-        android: {
-          detail: 'fine',
-          rationale: {
-            title: 'Location permission',
-            message: 'We use your location to demo the library',
-            buttonPositive: 'OK',
-            buttonNegative: 'Cancel',
-          },
-        },
-      }).then(granted => {
-        if (granted) {
-          resolve();
-        }
-      });
-    });
-  }
-
   callTestLatLongApi(lat, long) {
     return new Promise((resolve, reject) => {
-      console.log('NEW Location 2: ', '' + lat, '' + long);
-
       const params = {
         url: url,
         token: token,
@@ -132,54 +202,105 @@ export default class Location extends React.PureComponent {
 
       callApi([params])
         .then(data => {
-          console.log('response>>>>>', data);
-          this.setState({trackResponse: data}, () => resolve());
+          var response = data[0];
+          const {status_code, message} = response;
+          Toast.show(JSON.stringify(response), Toast.LONG);
+          console.log(JSON.stringify(response));
+
+          // write the file
+          this.writeDataInFile('response: ' + JSON.stringify(response));
+          resolve();
         })
         .catch(e => console.log('api error>>>', e));
     });
   }
 
+  _startTrackingListener() {
+    // Checking if the task i am going to create already exist and running, which means that the foreground is also running.
+    if (ReactNativeForegroundService.is_task_running(144)) return;
+
+    // Creating a task.
+    ReactNativeForegroundService.add_task(
+      () => {
+        console.log('task executed');
+        this.writeDataInFile('Start Tracking Listener.', this.state.isTracking);
+        if (this.state.isTracking) {
+          locationSubscription = RNLocation.subscribeToLocationUpdates(
+            ([locations]) => {
+              console.log(this.state.isTracking);
+              const {latitude, longitude} = locations;
+              var params = 'Latitude: ' + latitude + ' Longitude: ' + longitude;
+              this.writeDataInFile(params);
+              this.callTestLatLongApi(latitude, longitude);
+            },
+          );
+          console.log('locationSubscription>>>>>', locationSubscription);
+        }
+      },
+      {
+        delay: 100,
+        onLoop: false,
+        taskId: 144, // this must be same
+        onError: e => console.log(`Error logging:`, e),
+      },
+    );
+    // starting  foreground service.
+    return ReactNativeForegroundService.start({
+      id: 144,
+      title: 'Foreground Service',
+      message: 'you are online!',
+    });
+  }
+
+  onStop = () => {
+    this.writeDataInFile('Tracking stopped.');
+    locationSubscription && locationSubscription();
+    // Make always sure to remove the task before stoping the service. and instead of re-adding the task you can always update the task.
+    if (ReactNativeForegroundService.is_task_running(144)) {
+      ReactNativeForegroundService.remove_task(144);
+    }
+    // Stoping Foreground service.
+    return ReactNativeForegroundService.stop();
+  };
+
   _startUpdatingLocation = () => {
-    this.requestLocationPermission()
+    this.getAllPermissions()
       .then(() => {
-        console.log('start updating location.......');
+        const unsubscribeNetInfo = NetInfo.addEventListener(state => {
+          console.log('Internet:', state.isConnected);
+          RNFS.mkdir(dirPath);
+          this.writeDataInFile('Internet connected: ' + state.isConnected);
 
-        ReactNativeForegroundService.start({
-          id: 144,
-          title: 'Location Started',
-          message: 'you are on the way!',
+          this.setState({isTracking: true}, () => {
+            this._startTrackingListener();
+          });
         });
-
-        locationSubscription = RNLocation.subscribeToLocationUpdates(
-          ([locations]) => {
-            var response = locations;
-            response.speed = response.speed * 3.6;
-            this.setState({location: response});
-            console.log('Location response>>>>', response);
-
-            this.callTestLatLongApi(locations.latitude, locations.longitude);
-          },
-        );
       })
-      .catch(() => console.log('Permission denied!'));
+      .catch(e => {
+        console.log('error in getAllPermissions>>>', e);
+        Alert.alert(
+          'Go To Settings',
+          'Please grant Location and Storage Permissions to GeoLocationDemo to track your location in Settings -> Permissions.',
+          [
+            {
+              text: 'Cancel',
+              onPress: () => console.log('Cancel Pressed'),
+              style: 'cancel',
+            },
+            {
+              text: 'Go To Settings',
+              onPress: () =>
+                openSettings().catch(() =>
+                  console.warn('cannot open settings'),
+                ),
+            },
+          ],
+        );
+      });
   };
 
   _stopUpdatingLocation = () => {
-    console.log('stopping location service...');
-    locationSubscription && locationSubscription();
-
-    ReactNativeForegroundService.stop();
-
-    RNLocation.getLatestLocation({timeout: 60000}).then(latestLocation => {
-      // Use the location here
-      console.log('latestLcoation>>>>>', latestLocation);
-      this.callTestLatLongApi(
-        latestLocation.latitude,
-        latestLocation.longitude,
-      ).then(() => {
-        this.setState({location: null, trackResponse: null});
-      });
-    });
+    this.setState({isTracking: false}, () => this.onStop());
   };
 
   _openRepoUrl = () => {
@@ -187,6 +308,12 @@ export default class Location extends React.PureComponent {
       console.error('An error occurred', err),
     );
   };
+
+  writeDataInFile(params) {
+    RNFS.appendFile(filePath, params + '\n', 'utf8')
+      .then(success => {})
+      .catch(err => console.log(err.message));
+  }
 
   render() {
     const {location, trackResponse} = this.state;
@@ -201,6 +328,7 @@ export default class Location extends React.PureComponent {
             </View>
 
             <TextInput
+              placeholderTextColor="black"
               placeholder="Enter Meeting Id"
               value={this.state.meeting_id}
               onChangeText={value => this.setState({meeting_id: value})}
@@ -210,6 +338,7 @@ export default class Location extends React.PureComponent {
                 borderWidth: 1,
                 padding: 10,
                 width: 300,
+                color: 'black',
               }}
             />
             <Text style={styles.title}>react-native-location</Text>
