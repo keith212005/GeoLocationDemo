@@ -24,6 +24,7 @@ import RNLocation from 'react-native-location';
 import Toast from 'react-native-simple-toast';
 import NetInfo from '@react-native-community/netinfo';
 import ReactNativeForegroundService from '@supersami/rn-foreground-service';
+import RNDisableBatteryOptimizationsAndroid from 'react-native-disable-battery-optimizations-android';
 
 var dirPath = `${RNFS.ExternalStorageDirectoryPath}/GeoLocationDemo`;
 var filePath = dirPath + '/test.txt';
@@ -41,6 +42,14 @@ export default class Location extends React.PureComponent {
     super();
     this.writeDataInFile(
       'Constructor: ' + moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+    );
+
+    RNDisableBatteryOptimizationsAndroid.isBatteryOptimizationEnabled().then(
+      isEnabled => {
+        if (isEnabled) {
+          RNDisableBatteryOptimizationsAndroid.openBatteryModal();
+        }
+      },
     );
 
     this.state = {

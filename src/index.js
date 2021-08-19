@@ -1,11 +1,9 @@
 import React, {Component} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
 
-// import GetLocation from './geolocation';
-import Location from './location';
+import {StackNavigator} from '@navigator';
 
-export default class AppContainer extends Component {
+export default class App extends Component {
   render() {
-    return <Location />;
+    return <StackNavigator />;
   }
 }

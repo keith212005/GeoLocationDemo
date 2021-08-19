@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+
 
 
     <application
@@ -51,6 +53,14 @@
       <service android:name="com.supersami.foregroundservice.ForegroundServiceTask"></service>
       <!-- End of content to add -->
 
+
+      <!-- You will only need to add this meta-data tag, but make sure it's a child of application -->
+      <meta-data
+        android:name="com.google.android.geo.API_KEY"
+        android:value="AIzaSyB8eI1SL4VlbCcCfAXpDhvoBFe2Y5zRI08"/>
+
+         <!-- You will also only need to add this uses-library tag -->
+         <uses-library android:name="org.apache.http.legacy" android:required="false"/>
 
     </application>
 </manifest>
