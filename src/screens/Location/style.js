@@ -5,6 +5,12 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+
+  map: {
+    // ...StyleSheet.absoluteFillObject,
+
+    height: '60%',
+  },
   innerContainer: {
     marginVertical: 30,
   },

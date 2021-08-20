@@ -33,9 +33,9 @@ export default class StackNavigator extends React.Component {
               gesturesEnabled: false,
               animationEnabled: false,
             }}>
-            {this._addScreen('MapScreen')}
-
             {this._addScreen('Location')}
+
+            {this._addScreen('MapScreen')}
           </Stack.Navigator>
         </NavigationContainer>
       </>

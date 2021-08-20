@@ -1,12 +1,11 @@
 import {StyleSheet} from 'react-native';
 
+import {responsiveHeight, responsiveWidth} from '@resources';
+
 export const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    height: 400,
-    width: 400,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    height: responsiveHeight(70),
   },
   map: {
     ...StyleSheet.absoluteFillObject,

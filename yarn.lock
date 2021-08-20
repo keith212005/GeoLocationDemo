@@ -3970,6 +3970,11 @@ gensync@^1.0.0-beta.2:
   resolved "https://registry.npmjs.org/gensync/-/gensync-1.0.0-beta.2.tgz"
   integrity sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==
 
+geolib@^2.0.24:
+  version "2.0.24"
+  resolved "https://registry.yarnpkg.com/geolib/-/geolib-2.0.24.tgz#eb3d7fbc65f5ea3354a5af6054563ebe9f33e5f4"
+  integrity sha512-NR0AyYyEnGrFS9JvSFmmotQDxVCORJgDHdvBwSatxl5aHarOLMh3KuGI83bCvCfObjfoEiDe8Ung8GGLGAtthw==
+
 geolib@^3.3.1:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/geolib/-/geolib-3.3.1.tgz#f144a53b6a6858e81111ff71d137318389927611"
@@ -5262,7 +5267,7 @@ lodash.throttle@^4.1.1:
   resolved "https://registry.npmjs.org/lodash.throttle/-/lodash.throttle-4.1.1.tgz"
   integrity sha1-wj6RtxAkKscMN/HhzaknTMOb8vQ=
 
-lodash@^4.17.10, lodash@^4.17.11, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.7.0:
+lodash@^4.17.10, lodash@^4.17.11, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.4, lodash@^4.7.0:
   version "4.17.21"
   resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -6274,7 +6279,7 @@ prompts@^2.0.1, prompts@^2.4.0:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
 
-prop-types@^15.7.2:
+prop-types@^15.6.0, prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://registry.npmjs.org/prop-types/-/prop-types-15.7.2.tgz"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
@@ -6348,6 +6353,11 @@ react-native-disable-battery-optimizations-android@^1.0.7:
   resolved "https://registry.yarnpkg.com/react-native-disable-battery-optimizations-android/-/react-native-disable-battery-optimizations-android-1.0.7.tgz#d49437e78062a8b2158dd2818dfc6119147e4e3b"
   integrity sha512-4LP8KbDvRK34SHdflE9DgAsXN351ko7BtXYQZSbOUdrObAutsqlq/t1WDxEJq5xcCjYxLcvt25kFRKhVpTWiyQ==
 
+react-native-flip-view-next@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-flip-view-next/-/react-native-flip-view-next-1.0.0.tgz#da0f1c1c9242e3637944e4d7e9cd09ec9d947fd3"
+  integrity sha512-d5lbxodaC8dxNjHAKQfG+mFTan9bdo8YrpZAnpekDmQ35h3oDhH4sgee/q2LmWUhze0DM00iOn1/fFQRYwK80g==
+
 react-native-fs@^2.18.0:
   version "2.18.0"
   resolved "https://registry.yarnpkg.com/react-native-fs/-/react-native-fs-2.18.0.tgz#987b99cc90518ef26663a8d60e62104694b41c21"
@@ -6372,12 +6382,29 @@ react-native-location@^2.5.0:
   resolved "https://registry.yarnpkg.com/react-native-location/-/react-native-location-2.5.0.tgz#b6d2f7e9c3dbe13fbe87587f9533b8bf943b6a35"
   integrity sha512-myT54tZuFmN6d5RruMVfoa8eY+voJWkSd73xUVhjzJDnQr5uu5MFoH7hMg3trHF1CAkaY/2gIneOspUdGxv59Q==
 
+react-native-maps-navigation@^0.0.14:
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/react-native-maps-navigation/-/react-native-maps-navigation-0.0.14.tgz#f51bada3269ca81ea256fb6201a04037441a5488"
+  integrity sha512-B2mDzyjHdjzelXtI/ovPysrbVq/M5vjmYDWdmHj3w8j93n//zpVMICLGurz390kysdvxjxxs/zAN2RlZmbkq/g==
+  dependencies:
+    geolib "^2.0.24"
+    prop-types "^15.6.2"
+    react-native-optiongroup "^0.0.7"
+
 react-native-maps@^0.28.0:
   version "0.28.0"
   resolved "https://registry.yarnpkg.com/react-native-maps/-/react-native-maps-0.28.0.tgz#1913dd4977652ddfc317d39c7cb7d78a8e513784"
   integrity sha512-F+k5ZT9hhl+iXR1H+5ZcoHOEB5lPu9gCIwtA4lI/LoI9nfa9xFvr1vMiLIv44jzeGNzbE3+/R81IpcNDMJ5uDg==
   dependencies:
     "@types/geojson" "^7946.0.7"
+
+react-native-optiongroup@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/react-native-optiongroup/-/react-native-optiongroup-0.0.7.tgz#05144c577dae849efa7877002df8546836503b47"
+  integrity sha512-y1uqlgzqId/YNSooHSBVM5MkFnrhnRKK/0Vjumoh/Pk7EjB7P2bFYaq4/9NJpH9XpJuGcIickmt62Rk3kzSUHg==
+  dependencies:
+    lodash "^4.17.4"
+    prop-types "^15.6.0"
 
 react-native-permissions@^3.0.5:
   version "3.0.5"

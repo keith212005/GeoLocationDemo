@@ -23,8 +23,13 @@ import RNFS from 'react-native-fs';
 import RNLocation from 'react-native-location';
 import Toast from 'react-native-simple-toast';
 import NetInfo from '@react-native-community/netinfo';
+import MapView, {
+  PROVIDER_GOOGLE,
+  Polyline,
+  Marker,
+  AnimatedRegion,
+} from 'react-native-maps';
 import ReactNativeForegroundService from '@supersami/rn-foreground-service';
-import RNDisableBatteryOptimizationsAndroid from 'react-native-disable-battery-optimizations-android';
 
 var dirPath = `${RNFS.ExternalStorageDirectoryPath}/GeoLocationDemo`;
 var filePath = dirPath + '/test.txt';
@@ -44,14 +49,6 @@ export default class Location extends React.PureComponent {
       'Constructor: ' + moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
     );
 
-    RNDisableBatteryOptimizationsAndroid.isBatteryOptimizationEnabled().then(
-      isEnabled => {
-        if (isEnabled) {
-          RNDisableBatteryOptimizationsAndroid.openBatteryModal();
-        }
-      },
-    );
-
     this.state = {
       location: null,
       user_id: 'Tk5XN0VyM050YzlKb29NVHZSbnA3Zz09',
@@ -66,8 +63,21 @@ export default class Location extends React.PureComponent {
       trackResponse: null,
       distance: null,
       isTracking: false,
+      region: {
+        latitude: 37.78825,
+        longitude: -122.4324,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      },
     };
   }
+
+  getMapRegion = () => ({
+    latitude: this.state.latitude,
+    longitude: this.state.longitude,
+    latitudeDelta: 0.1,
+    longitudeDelta: 0.1,
+  });
 
   componentDidMount() {
     let subscription = DeviceEventEmitter.addListener(
@@ -77,6 +87,7 @@ export default class Location extends React.PureComponent {
       },
     );
 
+    this.getInitialLocation();
     this.calculateDistanceFromArray()
       .then(dist => console.log('distance: ', dist.toFixed(2) + ' Kms'))
       .catch(e => console.log(e));
@@ -121,6 +132,20 @@ export default class Location extends React.PureComponent {
           ],
         );
       });
+  }
+
+  getInitialLocation() {
+    RNLocation.getLatestLocation({timeout: 60000}).then(latestLocation => {
+      console.log('latestLocation>>>>>', latestLocation);
+      this.setState({
+        region: {
+          latitude: latestLocation.latitude,
+          longitude: latestLocation.longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        },
+      });
+    });
   }
 
   oneOfThem(array, value) {
@@ -293,49 +318,68 @@ export default class Location extends React.PureComponent {
       .catch(err => console.log(err.message));
   }
 
+  onRegionChange(region) {
+    console.log(region);
+    this.setState({region});
+  }
+
   render() {
     const {location, trackResponse} = this.state;
     return (
-      <ScrollView style={styles.container}>
-        <SafeAreaView style={styles.innerContainer}>
-          <View style={{alignItems: 'center', marginTop: 10}}>
-            <View style={styles.row}>
-              {this.state.trackResponse != null && (
-                <Text style={styles.json}>{JSON.stringify(trackResponse)}</Text>
-              )}
+      <>
+        <ScrollView style={styles.container}>
+          <SafeAreaView style={styles.innerContainer}>
+            <View style={{alignItems: 'center', marginTop: 10}}>
+              <View style={styles.row}>
+                {this.state.trackResponse != null && (
+                  <Text style={styles.json}>
+                    {JSON.stringify(trackResponse)}
+                  </Text>
+                )}
+              </View>
+
+              <TextInput
+                placeholderTextColor="black"
+                placeholder="Enter Meeting Id"
+                value={this.state.meeting_id}
+                onChangeText={value => this.setState({meeting_id: value})}
+                style={styles.inputStyle}
+              />
+              <Text style={styles.title}>react-native-location</Text>
+              <TouchableHighlight
+                onPress={this._openRepoUrl}
+                underlayColor="#CCC"
+                activeOpacity={0.8}>
+                <Text style={styles.repoLink}>{repoUrl}</Text>
+              </TouchableHighlight>
             </View>
 
-            <TextInput
-              placeholderTextColor="black"
-              placeholder="Enter Meeting Id"
-              value={this.state.meeting_id}
-              onChangeText={value => this.setState({meeting_id: value})}
-              style={styles.inputStyle}
-            />
-            <Text style={styles.title}>react-native-location</Text>
-            <TouchableHighlight
-              onPress={this._openRepoUrl}
-              underlayColor="#CCC"
-              activeOpacity={0.8}>
-              <Text style={styles.repoLink}>{repoUrl}</Text>
-            </TouchableHighlight>
-          </View>
+            <View style={styles.row}>
+              <TouchableHighlight
+                onPress={this._startUpdatingLocation}
+                style={[styles.button, {backgroundColor: '#126312'}]}>
+                <Text style={styles.buttonText}>Start</Text>
+              </TouchableHighlight>
 
-          <View style={styles.row}>
-            <TouchableHighlight
-              onPress={this._startUpdatingLocation}
-              style={[styles.button, {backgroundColor: '#126312'}]}>
-              <Text style={styles.buttonText}>Start</Text>
-            </TouchableHighlight>
-
-            <TouchableHighlight
-              onPress={this._stopUpdatingLocation}
-              style={[styles.button, {backgroundColor: '#881717'}]}>
-              <Text style={styles.buttonText}>Stop</Text>
-            </TouchableHighlight>
-          </View>
-        </SafeAreaView>
-      </ScrollView>
+              <TouchableHighlight
+                onPress={this._stopUpdatingLocation}
+                style={[styles.button, {backgroundColor: '#881717'}]}>
+                <Text style={styles.buttonText}>Stop</Text>
+              </TouchableHighlight>
+            </View>
+          </SafeAreaView>
+        </ScrollView>
+        <MapView
+          provider={PROVIDER_GOOGLE}
+          style={styles.map}
+          showUserLocation
+          followUserLocation
+          loadingEnabled
+          region={this.state.region}
+          onRegionChange={region => {
+            this.onRegionChange(region);
+          }}></MapView>
+      </>
     );
   }
 }
