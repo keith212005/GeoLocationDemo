@@ -1,5 +1,7 @@
 apply plugin: "com.android.application"
 
+apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
+
 import com.android.build.OutputFile
 
 /**
@@ -137,6 +139,7 @@ android {
         versionCode 1
         versionName "1.0"
         multiDexEnabled true //Add this line
+        manifestPlaceholders = [mapsApiKey: "$System.env.MAPS_API_KEY"]
     }
     splits {
         abi {

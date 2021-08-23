@@ -35,10 +35,10 @@ var dirPath = `${RNFS.ExternalStorageDirectoryPath}/GeoLocationDemo`;
 var filePath = dirPath + '/test.txt';
 
 import {styles} from './style';
-import {token, url, latLongArr} from '@constants';
+import {latLongArr, token} from '@constants';
 import {callApi} from '@api';
 
-const repoUrl = 'https://github.com/timfpark/react-native-location';
+import Config from 'react-native-config';
 
 var locationSubscription: () => void;
 
@@ -132,6 +132,8 @@ export default class Location extends React.PureComponent {
           ],
         );
       });
+
+    console.log('API URL>>>>>>>>>>>', Config.API_URL);
   }
 
   getInitialLocation() {
@@ -205,7 +207,7 @@ export default class Location extends React.PureComponent {
   callTestLatLongApi(lat, long) {
     return new Promise((resolve, reject) => {
       const params = {
-        url: url,
+        url: Config.API_URL,
         token: token,
         type: 'application/json',
         data: {
@@ -308,10 +310,6 @@ export default class Location extends React.PureComponent {
     this.setState({isTracking: false}, () => this.onStop());
   };
 
-  _openRepoUrl = () => {
-    Linking.openURL(repoUrl).catch(err => {});
-  };
-
   writeDataInFile(params) {
     RNFS.appendFile(filePath, params + '\n', 'utf8')
       .then(success => {})
@@ -346,12 +344,6 @@ export default class Location extends React.PureComponent {
                 style={styles.inputStyle}
               />
               <Text style={styles.title}>react-native-location</Text>
-              <TouchableHighlight
-                onPress={this._openRepoUrl}
-                underlayColor="#CCC"
-                activeOpacity={0.8}>
-                <Text style={styles.repoLink}>{repoUrl}</Text>
-              </TouchableHighlight>
             </View>
 
             <View style={styles.row}>
@@ -370,13 +362,13 @@ export default class Location extends React.PureComponent {
           </SafeAreaView>
         </ScrollView>
         <MapView
+          showsUserLocation={true}
+          followUserLocation={true}
           provider={PROVIDER_GOOGLE}
           style={styles.map}
-          showUserLocation
-          followUserLocation
           loadingEnabled
           region={this.state.region}
-          onRegionChange={region => {
+          onRegionChangeComplete={region => {
             this.onRegionChange(region);
           }}></MapView>
       </>
